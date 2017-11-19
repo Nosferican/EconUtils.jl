@@ -1,14 +1,11 @@
-Pkg.rm("DataFrames")
+Pkg.rm("StatsModels")
+Pkg.rm("StatsModels")
 Pkg.rm("DataFrames")
 Pkg.rm("DataFrames")
 Pkg.rm("StatsBase")
 Pkg.rm("StatsBase")
-Pkg.rm("StatsBase")
-Pkg.rm("StatsModels")
-Pkg.rm("StatsModels")
-Pkg.rm("StatsModels")
-Pkg.clone("https://github.com/JuliaEconometrics/DataFrames.jl")
 Pkg.clone("https://github.com/JuliaEconometrics/StatsBase.jl")
+Pkg.clone("https://github.com/JuliaEconometrics/DataFrames.jl")
 Pkg.clone("https://github.com/JuliaEconometrics/StatsModels.jl")
 
 using EconUtils
