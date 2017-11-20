@@ -12,7 +12,7 @@ function between(obj::DataFrames.AbstractDataFrame, variable::Symbol)
 	output = DataFrames.dropmissing(obj)
 	dropsupportformissing!(output)
 	categorical = setdiff(DataFrames.names(output)[broadcast(<:, typeof.(output.columns), CategoricalArrays.AbstractCategoricalVector)], [variable])
-	output = output[:, setdiff(DataFrames.names(output), filter(idx -> length(DataFrames.levels(output[idx])) != 2, categorical))]
+	output = output[:, setdiff(DataFrames.names(output), filter(idx -> length(CategoricalArrays.levels(output[idx])) != 2, categorical))]
 	varlist = DataFrames.names(output)
 	output = DataFrames.aggregate(output, variable, between)
 	DataFrames.names!(output, varlist)
@@ -20,7 +20,7 @@ function between(obj::DataFrames.AbstractDataFrame, variable::Symbol)
 end
 between(obj::AbstractVector) = mean(obj)
 between(obj::CategoricalArrays.AbstractCategoricalVector) =
-	mean(obj .== DataFrames.levels(obj)[2])
+	mean(obj .== CategoricalArrays.levels(obj)[2])
 function between(obj::DataFrames.AbstractDataFrame)
 	output = obj[1,2:end]
 	for idx ∈ names(obj)[2:end]

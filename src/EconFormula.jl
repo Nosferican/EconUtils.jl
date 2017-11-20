@@ -65,7 +65,7 @@ function formulaparser(formula::StatsModels.Formula)
 		Representation.rhs.args =
 			Representation.rhs.args[(EndoInst .== nothing) .&
 			(Absorb .== nothing)]
-		Representation = string(representation)
+		Representation = string(Representation)
 		formula.args = formula.args[(EndoInst .== nothing) .&
 			(Absorb .== nothing) .& (EndoInst .== nothing)]
 		if formula.args[1] == :(+)
