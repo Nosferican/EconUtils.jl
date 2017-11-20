@@ -10,31 +10,32 @@
 	observation is not valid. The first observation for the temporal ID is kept
 	as the original value.
 """
-function firstdifference(obj::DataFrames.AbstractDataFrame, PID::Symbol, TID::Symbol; gap::Integer = 1)
+function firstdifference(obj::DataFrames.AbstractDataFrame,
+						 PID::Symbol,
+						 TID::Symbol)
 	varlist = DataFrames.names(obj)
 	promotetoallowmissing!(obj)
 	sort!(obj, cols = [PID, TID])
-	categorical = setdiff(DataFrames.names(obj)[broadcast(<:, typeof.(obj.columns), CategoricalArrays.AbstractCategoricalVector)], [PID])
-	todiff = obj[:, union([PID, TID], setdiff(DataFrames.names(obj), categorical))]
+	Step = step(obj, PID = PID, TID = TID)
+	categorical = setdiff(DataFrames.names(obj)[broadcast(<:,
+						typeof.(obj.columns),
+						CategoricalArrays.AbstractCategoricalVector)],
+						[PID, TID])
+	todiff = obj[:, union([PID],
+					setdiff(DataFrames.names(obj), union([TID], categorical)))]
 	todiff = DataFrames.by(todiff, PID) do subdf
 		if size(subdf, 1) == 1
-			output = subdf[:,2:end]
-			output[:] = Missings.missing
+			output = DataFrames.DataFrame()
 		else
 			output = subdf[:,2:end]
 			for col ∈ DataFrames.eachcol(output)
-				output[2:end,col[1]] = diff(col[2])
+				output[:,col[1]] = vcat(Missings.missing, diff(col[2]))
 			end
-			output[1,:] = Missings.missing
 		end
 		return output
 	end
-	Temporal = copy(obj[TID])
-	valid = todiff[TID] .== gap
-	valid[ismissing.(valid)] = false
-	todiff[TID] = ifelse.(valid, Temporal, Missings.missing)
-	output = hcat(todiff, obj[categorical])
-	output = output[.!ismissing.(output[TID]),:]
-	output = output[vcat([PID, TID], setdiff(varlist, [PID, TID]))]
+	output = hcat(obj[[PID, TID]], todiff, obj[categorical])
+	output = output[gaps(obj, Step, PID = PID, TID = TID),:]
+	output = output[varlist]
 	return output
 end
