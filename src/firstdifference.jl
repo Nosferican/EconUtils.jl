@@ -14,8 +14,10 @@ function firstdifference(obj::DataFrames.AbstractDataFrame,
 						 PID::Symbol,
 						 TID::Symbol)
 	varlist = DataFrames.names(obj)
+	obj = copy(obj)
 	promotetoallowmissing!(obj)
 	sort!(obj, cols = [PID, TID])
+	DataFrames.categorical!(obj)
 	Step = step(obj, PID = PID, TID = TID)
 	categorical = setdiff(DataFrames.names(obj)[broadcast(<:,
 						typeof.(obj.columns),

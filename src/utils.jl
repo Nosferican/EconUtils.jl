@@ -37,7 +37,7 @@ function gaps(obj::DataFrames.DataFrame,
         output = vcat(false, first.(getfield.(output, :periods)) .== Step)
         return output
     end
-    return output[:,2]
+    return ifelse.(Missings.ismissing.(output[:,2]), false, output[:,2])
 end
 function gaps(obj::DataFrames.DataFrame,
               Step::Dates.Week;
@@ -52,7 +52,7 @@ function gaps(obj::DataFrames.DataFrame,
         output = vcat(false, Dates.Week.(output ./ 7) .== Step)
         return output
     end
-    return output[:,2]
+    return ifelse.(Missings.ismissing.(output[:,2]), false, output[:,2])
 end
 function gaps(obj::DataFrames.DataFrame,
               Step::Dates.Day;
@@ -68,7 +68,7 @@ function gaps(obj::DataFrames.DataFrame,
         output = vcat(false, Dates.Day.(output) .== Step)
         return output
     end
-    return output[:,2]
+    return ifelse.(Missings.ismissing.(output[:,2]), false, output[:,2])
 end
 function Base.step(obj::AbstractVector{T}) where T <: Base.Dates.Date
     hopeful = Dates.CompoundPeriod.(Dates.Year.(diff(Dates.year.(obj))) .+ Dates.Month.(diff(Dates.month.(obj))) .+ Dates.Day.(diff(Dates.day.(obj))))
@@ -95,16 +95,16 @@ function Base.step(obj::AbstractVector{T}) where T <: Real
 end
 ## Makes all columns compatible with missing data
 function promotetoallowmissing(obj::AbstractVector)
-	TypeOf = eltype(obj)
-	if isa(TypeOf, Union)
-		TypeOf = TypeOf.b
+	T = eltype(obj)
+	if isa(T, Union)
+		T = T.parameters[1]
 	end
-	return Vector{Union{Missings.Missing,TypeOf}}(obj)
+	return Vector{Union{Missings.Missing,T}}(obj)
 end
 function promotetoallowmissing(obj::CategoricalArrays.CategoricalVector)
 	T = eltype(obj)
 	if isa(T, Union)
-		T = T.b
+		T = T.parameters[1]
 	end
 	return CategoricalArrays.CategoricalVector{Union{Missings.Missing,T}}(obj)
 end
@@ -117,17 +117,24 @@ function promotetoallowmissing!(obj::DataFrames.AbstractDataFrame)
 end
 
 ## Drop support for missing data
-function dropsupportformissing(obj::AbstractVector)
+dropsupportformissing(obj::AbstractVector) = obj
+dropsupportformissing(obj::AbstractVector{T}) where T <: Union = Vector{eltype(obj).b}(obj)
+function dropsupportformissing(obj::CategoricalArrays.AbstractCategoricalVector)
 	T = eltype(obj)
-	if isa(T, Union)
-		T = T.b
-	end
-	return Vector{T}(obj)
+    if T <: AbstractString
+        output = CategoricalArrays.CategoricalVector{T}(obj)
+    elseif T !== Union{}
+        output = CategoricalArrays.CategoricalVector{T.parameters[1]}(obj)
+    else
+        output = CategoricalArrays.CategoricalVector{T}(obj)
+    end
+    return output
+    end
 end
 function dropsupportformissing!(obj::DataFrames.AbstractDataFrame)
 	for col ∈ DataFrames.eachcol(obj)
 		obj[col[1]] = dropsupportformissing(col[2])
 	end
-	DataFrames.categorical!(obj, find(col -> col <: AbstractString, (eltype.(obj.columns))))
+	DataFrames.categorical!(obj)
 	return
 end
