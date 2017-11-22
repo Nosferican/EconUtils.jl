@@ -16,22 +16,11 @@ function tsls(exogenous::AbstractMatrix, instruments::AbstractMatrix, endogenous
 	instrumented = hcat(exogenous, instruments)
 	R = qrfact(instrumented)[:R]
 	LI = abs.(diag(R)) .> sqrt(eps())
-	if any(LI)
-		instrumented = instrumented[:,LI]
-		for col ∈ sort(find(.!LinearIndependent), rev = true)
-			R = QRupdate.qrdelcol(R, col)
-		end
-	end
+	instrumented = instrumented[:,LI]
 	@assert size(instrumented, 2) ≥ (n_exogenous + n_endogenous) "Not sufficient instruments."
-	mm = hcat(exogenous, instrumented * inv(cholfact!(R.'R)) * instrumented.'endogenous)
+	mm = hcat(exogenous, instrumented * inv(cholfact!(instrumented.'instrumented)) * instrumented.'endogenous)
 	R = qrfact(mm)[:R]
 	LI = abs.(diag(R)) .> sqrt(eps())
-	if any(LI)
-		mm = mm[:,LI]
-		for col ∈ sort(find(.!LinearIndependent), rev = true)
-			R = QRupdate.qrdelcol(R, col)
-		end
-	end
-	A = R.'R
-	return mm, A, LI
+	mm = mm[:,LI]
+	return mm, mm.'mm, LI
 end

@@ -9,12 +9,13 @@
 	suppressed.
 """
 function between(obj::DataFrames.AbstractDataFrame, variable::Symbol)
-	output = DataFrames.dropmissing(obj)
-    DataFrames.categorical!(output)
-    output = output[union([variable], names(output))]
-    sort!(output, cols = [variable])
-    varlist = names(output)
-    output = DataFrames.by(output, variable) do subdf
+	obj = DataFrames.dropmissing(obj)
+    DataFrames.categorical!(obj)
+    obj = obj[union([variable], names(obj))]
+    sort!(obj, cols = [variable])
+    varlist = names(obj)
+    FirstOfEach = collect(values(sort(StatsBase.indexmap(obj[variable]))))
+    output = DataFrames.by(obj, variable) do subdf
         DataFrames.DataFrame(DataFrames.colwise(between, subdf[:,2:end]))
     end
     DataFrames.names!(output, varlist)
@@ -26,20 +27,27 @@ function between(obj::DataFrames.AbstractDataFrame, variable::Symbol)
                 output[name] = ifelse.(output[name] .== 0, first(lvls), last(lvls))
             elseif length(lvls) > 2
                 if all(output[name] .== true)
-                    output[name] = obj[collect(values(sort(StatsBase.indexmap(obj[variable])))), name]
+                    output[name] = obj[FirstOfEach, name]
                 else
                     push!(incompatible, name)
                 end
             end
         elseif eltype(obj[name]) <: Dates.TimeType
             if all(output[name] .== true)
-                output[name] = obj[collect(values(sort(StatsBase.indexmap(obj[variable])))), name]
+                output[name] = obj[FirstOfEach, name]
             else
                 push!(incompatible, name)
             end
         end
     end
-    output = output[setdiff(names(output), incompatible)]
+    output = output[setdiff(names(obj), incompatible)]
+    for (name, col) ∈ DataFrames.eachcol(output)
+        if typeof(obj[name]) <: CategoricalArrays.AbstractCategoricalVector
+            if sort(unique(col)) == [0,1]
+                output[name] = obj[FirstOfEach,name]
+            end
+        end
+    end
 	return output
 end
 between(obj::AbstractVector) = mean(obj)

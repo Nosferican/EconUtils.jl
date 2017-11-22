@@ -18,7 +18,14 @@ function firstdifference(obj::DataFrames.AbstractDataFrame,
 	promotetoallowmissing!(obj)
 	sort!(obj, cols = [PID, TID])
 	DataFrames.categorical!(obj)
-	Step = step(obj, PID = PID, TID = TID)
+	Step = DataFrames.by(obj, PID) do subdf
+        frequency(subdf[TID])
+    end
+	Step = filter(elem -> elem ≥ zero(typeof(elem)), Step[:x1])
+	@assert !isempty(Step) "No positive step."
+	Step = minimum(Step)
+	Gaps = gaps(obj, Step, PID = PID, TID = TID)
+	Gaps = Gaps[:Valid]
 	categorical = setdiff(DataFrames.names(obj)[broadcast(<:,
 						typeof.(obj.columns),
 						CategoricalArrays.AbstractCategoricalVector)],
@@ -27,17 +34,16 @@ function firstdifference(obj::DataFrames.AbstractDataFrame,
 					setdiff(DataFrames.names(obj), union([TID], categorical)))]
 	todiff = DataFrames.by(todiff, PID) do subdf
 		if size(subdf, 1) == 1
-			output = DataFrames.DataFrame()
+			output = subdf[:,2:end]
 		else
 			output = subdf[:,2:end]
-			for col ∈ DataFrames.eachcol(output)
-				output[:,col[1]] = vcat(Missings.missing, diff(col[2]))
+			for (name, col) ∈ DataFrames.eachcol(output)
+				output[:,name] = vcat(Missings.missing, diff(col))
 			end
 		end
 		return output
 	end
 	output = hcat(obj[[PID, TID]], todiff, obj[categorical])
-	output = output[gaps(obj, Step, PID = PID, TID = TID),:]
-	output = output[varlist]
+	output = output[Gaps,varlist]
 	return output
 end

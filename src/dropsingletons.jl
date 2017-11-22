@@ -1,22 +1,4 @@
 
-"""
-	fixedeffects(obj::DataFrames.AbstractDataFrame)
-
-	This functions takes a dataframe with the fixed effects and returns a list
-	of dimensions with a list of fixed effects (observation identifiers). It
-	also returns a list of singletons to drop from the model matrix and response
-	vector. After dropping the singletons from the model matrix, one can use
-	pass the fixedeffects to the within transformation.
-"""
-function fixedeffects(obj::DataFrames.AbstractDataFrame)
-	groups = makegroups(obj)
-	(m, singletons) = dropsingletons!(groups)
-	remapper = makeremapper(m, singletons)
-	remapping!(groups, remapper)
-	output = groups, singletons
-	return output
-end
-
 makegroups(obj::AbstractVector) =
 	find.(map(val -> obj .== val, unique(obj)))
 makegroups(obj::DataFrames.AbstractDataFrame) = makegroups.(obj.columns)

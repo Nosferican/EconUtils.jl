@@ -19,7 +19,9 @@ function modelframe(formula::EconFormula,
 	exogenous = StatsModels.Terms(formula.exogenous)
 	endogenous = StatsModels.Terms(formula.endogenous)
 	instruments = StatsModels.Terms(formula.instruments)
-	vars = Symbol.(reduce(union, getfield.((exogenous, endogenous, instruments), :eterms)))
+	absorb = StatsModels.Terms(formula.absorb)
+	clusters = StatsModels.Terms(formula.clusters)
+	vars = Symbol.(reduce(union, getfield.((exogenous, endogenous, instruments, absorb, clusters), :eterms)))
 	df = data[vars]
 	DataFrames.dropmissing!(df)
 	mf = StatsModels.ModelFrame(exogenous, df, contrasts = contrasts)
