@@ -114,3 +114,8 @@ function linearindependent(obj::AbstractMatrix{T}) where T <: Real
     end
     return output, LI
 end
+
+## Make groups
+makegroups(obj::AbstractVector) =
+	find.(map(val -> obj .== val, unique(obj)))
+makegroups(obj::DataFrames.AbstractDataFrame) = makegroups.(obj.columns)

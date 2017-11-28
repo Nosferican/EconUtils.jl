@@ -1,7 +1,4 @@
 
-makegroups(obj::AbstractVector) =
-	find.(map(val -> obj .== val, unique(obj)))
-makegroups(obj::DataFrames.AbstractDataFrame) = makegroups.(obj.columns)
 idsingletons(obj::AbstractVector) = filter(elem -> length(elem) == 1, obj)
 idsingletons(obj::AbstractVector{T}) where T <: AbstractVector = first.(filter(elem -> length(elem) == 1, obj))
 function dropsingletons!(obj::Vector{Vector{Vector{Int64}}})
