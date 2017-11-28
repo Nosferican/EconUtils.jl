@@ -1,10 +1,4 @@
 
-## On Dates
-Dates.Year(::Missings.Missing) = Missings.missing
-Dates.Month(::Missings.Missing) = Missings.missing
-Dates.Week(::Missings.Missing) = Missings.missing
-Dates.Day(::Missings.Missing) = Missings.missing
-
 ## Allows for determining the step size for first difference.
 function gaps(obj::DataFrames.DataFrame,
               Step::Base.Dates.DatePeriod;
@@ -105,4 +99,18 @@ function dropsupportformissing!(obj::DataFrames.AbstractDataFrame)
 	end
 	DataFrames.categorical!(obj, find(col -> col <: AbstractString, (eltype.(obj.columns))))
 	return
+end
+
+## Linear Independent
+function linearindependent(obj::AbstractMatrix{T}) where T <: Real
+    cf = cholfact!(Hermitian(obj.'obj), Val(true), tol = -one(eltype(obj)))
+    r = cf.rank
+    p = size(obj, 2)
+    if r < p
+        LI = sort!(cf.piv[1:r])
+        output = obj[:, LI]
+    else
+        LI = eachindex(cf.piv)
+    end
+    return output, LI
 end
