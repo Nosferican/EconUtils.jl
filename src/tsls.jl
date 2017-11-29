@@ -18,5 +18,5 @@ function tsls(exogenous::AbstractMatrix, instruments::AbstractMatrix, endogenous
 	@assert size(instrumented, 2) ≥ (n_exogenous + n_endogenous) "Not sufficient instruments."
 	mm = hcat(exogenous, instrumented * inv(cholfact!(Hermitian(instrumented.'instrumented))) * instrumented.'endogenous)
 	mm, LI = linearindependent(mm)
-	return mm, Hermitian(mm.'mm), LI
+	return mm, Symmetric(mm.'mm), LI
 end

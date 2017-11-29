@@ -68,7 +68,7 @@ function formulaparser(formula::StatsModels.Formula)
 		Representation = string(Representation)
 		formula.args = formula.args[(EndoInst .== nothing) .&
 			(Absorb .== nothing) .& (EndoInst .== nothing)]
-		if formula.args[1] == :(+)
+		if (formula.args[1] == :(+)) & (length(formula.args) == 2)
 			Exogenous = StatsModels.Formula(response, formula.args[2])
 		else
 			Exogenous = StatsModels.Formula(response, formula)

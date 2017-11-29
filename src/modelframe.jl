@@ -14,7 +14,8 @@
 		clusters::Vector{Vector{Vector{Int64}}}
 """
 function modelframe(formula::EconFormula,
-	data::DataFrames.AbstractDataFrame; contrasts::Dict = Dict())
+	data::DataFrames.AbstractDataFrame;
+	contrasts::Dict = Dict())
 	response = formula.exogenous.lhs
 	exogenous = StatsModels.Terms(formula.exogenous)
 	endogenous = StatsModels.Terms(formula.endogenous)
@@ -27,7 +28,9 @@ function modelframe(formula::EconFormula,
 	mf = StatsModels.ModelFrame(exogenous, df, contrasts = contrasts)
 	y = Vector{Float64}(mf.df[response])
 	varlist = StatsBase.coefnames(mf)
-	X = StatsModels.ModelMatrix(mf).m
+	MM = StatsModels.ModelMatrix(mf)
+	assign = MM.assign
+	X = MM.m
 	if length(endogenous.eterms) > 1
 		mf = StatsModels.ModelFrame(endogenous, df)
 		append!(varlist, StatsBase.coefnames(mf)[2:end])
@@ -35,7 +38,8 @@ function modelframe(formula::EconFormula,
 		if unique(mm.assign) ≠ mm.assign
 			@assert false "Endogenous variables must not be categorical variables with more than two levels."
 		end
-		z = mm.m[:,2:end]
+		append!(assign, mm.assign)
+		z = mm.m[:, map(elem -> elem > 0, mm.assign)]
 		mf = StatsModels.ModelFrame(instruments, df)
 		Z = StatsModels.ModelMatrix(mf).m[:,2:end]
 	else
@@ -44,5 +48,5 @@ function modelframe(formula::EconFormula,
 	end
 	D = Vector{Vector{Vector{Int64}}}()
 	G = Vector{Vector{Vector{Int64}}}()
-	return df, varlist, y, X, z, Z, D, G
+	return df, varlist, assign, y, X, z, Z, D, G
 end

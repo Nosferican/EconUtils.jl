@@ -108,14 +108,23 @@ function linearindependent(obj::AbstractMatrix{T}) where T <: Real
     p = size(obj, 2)
     if r < p
         LI = sort!(cf.piv[1:r])
-        output = obj[:, LI]
+        obj = obj[:, LI]
     else
         LI = eachindex(cf.piv)
     end
-    return output, LI
+    return obj, LI
 end
 
 ## Make groups
 makegroups(obj::AbstractVector) =
 	find.(map(val -> obj .== val, unique(obj)))
 makegroups(obj::DataFrames.AbstractDataFrame) = makegroups.(obj.columns)
+function makegroups(formula::StatsModels.Formula, data::DataFrames.AbstractDataFrame)
+    formula = StatsModels.Terms(formula.absorb).eterms[2:end]
+    if isempty(formula)
+        output = Vector{Vector{Vector{Int64}}}()
+    else
+        output = makegroups(data[formula])
+    end
+    return output
+end
