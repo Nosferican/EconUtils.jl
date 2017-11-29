@@ -32,6 +32,26 @@ function gaps(obj::DataFrames.DataFrame,
     DataFrames.names!(output, vcat(names(output)[1], :Valid))
     return output
 end
+function gaps(obj::DataFrames.DataFrame,
+              Step::Real;
+              PID::Symbol = names(obj)[1],
+              TID::Symbol = names(obj)[2])
+    obj = obj[[PID, TID]]
+    T = typeof(Step)
+    if typeof(obj[TID]) <: CategoricalArrays.AbstractCategoricalVector
+        obj[TID] = get.(obj[TID])
+    end
+    output = DataFrames.by(obj, PID) do subdf
+        if size(subdf, 1) > 1
+            output = vcat(false, diff(subdf[TID]) .== Step)
+        else
+            output = DataFrames.DataFrame(x1 = false)
+        end
+        return output
+    end
+    DataFrames.names!(output, vcat(names(output)[1], :Valid))
+    return output
+end
 function frequency(obj::AbstractVector)
     if length(obj) < 2
         return -1
