@@ -1,6 +1,6 @@
 
 """
-	modelframe(formula::EconFormula, data::DataFrames.AbstractDataFrame)
+	modelframe(formula::EconFormula, data::AbstractDataFrame)
 
 	This formula is akin to ModelFrame for Formula, but rather than being a
 	struct it returns
@@ -14,7 +14,7 @@
 		clusters::Vector{Vector{Vector{Int64}}}
 """
 function modelframe(formula::EconFormula,
-	data::DataFrames.AbstractDataFrame;
+	data::AbstractDataFrame;
 	contrasts::Dict = Dict())
 	response = formula.exogenous.lhs
 	exogenous = StatsModels.Terms(formula.exogenous)
@@ -24,24 +24,24 @@ function modelframe(formula::EconFormula,
 	clusters = StatsModels.Terms(formula.clusters)
 	vars = Symbol.(reduce(union, getfield.((exogenous, endogenous, instruments, absorb, clusters), :eterms)))
 	df = data[vars]
-	DataFrames.dropmissing!(df)
-	mf = StatsModels.ModelFrame(exogenous, df, contrasts = contrasts)
-	y = Vector{Float64}(mf.df[response])
-	varlist = StatsBase.coefnames(mf)
-	MM = StatsModels.ModelMatrix(mf)
+	dropmissing!(df)
+	mf = ModelFrame(exogenous, df, contrasts = contrasts)
+	y = model_response(mf)
+	varlist = coefnames(mf)
+	MM = ModelMatrix(mf)
 	assign = MM.assign
 	X = MM.m
 	if length(endogenous.eterms) > 1
-		mf = StatsModels.ModelFrame(endogenous, df)
-		append!(varlist, StatsBase.coefnames(mf)[2:end])
-		mm = StatsModels.ModelMatrix(mf)
+		mf = ModelFrame(endogenous, df)
+		append!(varlist, coefnames(mf)[2:end])
+		mm = ModelMatrix(mf)
 		if unique(mm.assign) ≠ mm.assign
 			@assert false "Endogenous variables must not be categorical variables with more than two levels."
 		end
 		append!(assign, mm.assign)
 		z = mm.m[:, map(elem -> elem > 0, mm.assign)]
-		mf = StatsModels.ModelFrame(instruments, df)
-		Z = StatsModels.ModelMatrix(mf).m[:,2:end]
+		mf = ModelFrame(instruments, df)
+		Z = ModelMatrix(mf).m[:,2:end]
 	else
 		z = zeros(length(y),0)
 		Z = zeros(length(y),0)

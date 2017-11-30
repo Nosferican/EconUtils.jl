@@ -1,55 +1,55 @@
 
 ## Allows for determining the step size for first difference.
-function gaps(obj::DataFrames.DataFrame,
+function gaps(obj::DataFrame,
               Step::Base.Dates.DatePeriod;
               PID::Symbol = names(obj)[1],
               TID::Symbol = names(obj)[2])
     obj = obj[[PID, TID]]
     T = typeof(Step)
-    if typeof(obj[TID]) <: CategoricalArrays.AbstractCategoricalVector
+    if typeof(obj[TID]) <: AbstractCategoricalVector
         obj[TID] = get.(obj[TID])
     end
     if (T <: Dates.Day) | (T <: Dates.Week)
-        output = DataFrames.by(obj, PID) do subdf
+        output = by(obj, PID) do subdf
             if size(subdf, 1) > 1
                 output = vcat(false, diff(subdf[TID]) .== Step)
             else
-                output = DataFrames.DataFrame(x1 = false)
+                output = DataFrame(x1 = false)
             end
             return output
         end
     else
-        output = DataFrames.by(obj, PID) do subdf
+        output = by(obj, PID) do subdf
             if size(subdf, 1) > 1
                 output = reduce(vcat, diff(map(ym -> [12 * ym[1] + ym[2]], Dates.yearmonth.(subdf[TID]))))
                 output = vcat(false, Dates.Month.(output) .== Step)
             else
-                output = DataFrames.DataFrame(x1 = false)
+                output = DataFrame(x1 = false)
             end
             return output
         end
     end
-    DataFrames.names!(output, vcat(names(output)[1], :Valid))
+    names!(output, vcat(names(output)[1], :Valid))
     return output
 end
-function gaps(obj::DataFrames.DataFrame,
+function gaps(obj::DataFrame,
               Step::Real;
               PID::Symbol = names(obj)[1],
               TID::Symbol = names(obj)[2])
     obj = obj[[PID, TID]]
     T = typeof(Step)
-    if typeof(obj[TID]) <: CategoricalArrays.AbstractCategoricalVector
+    if typeof(obj[TID]) <: AbstractCategoricalVector
         obj[TID] = get.(obj[TID])
     end
-    output = DataFrames.by(obj, PID) do subdf
+    output = by(obj, PID) do subdf
         if size(subdf, 1) > 1
             output = vcat(false, diff(subdf[TID]) .== Step)
         else
-            output = DataFrames.DataFrame(x1 = false)
+            output = DataFrame(x1 = false)
         end
         return output
     end
-    DataFrames.names!(output, vcat(names(output)[1], :Valid))
+    names!(output, vcat(names(output)[1], :Valid))
     return output
 end
 function frequency(obj::AbstractVector)
@@ -59,7 +59,7 @@ function frequency(obj::AbstractVector)
     output = minimum(diff(obj))
     return output
 end
-frequency(obj::CategoricalArrays.AbstractCategoricalVector) = frequency(get.(obj))
+frequency(obj::AbstractCategoricalVector) = frequency(get.(obj))
 function frequency(obj::AbstractVector{T}) where T <: Dates.Date
     if length(obj) < 2
         return -1
@@ -86,38 +86,38 @@ function promotetoallowmissing(obj::AbstractVector)
 	if isa(TypeOf, Union)
 		TypeOf = TypeOf.b
 	end
-	return Vector{Union{Missings.Missing,TypeOf}}(obj)
+	return Vector{Union{Missing,TypeOf}}(obj)
 end
-function promotetoallowmissing(obj::CategoricalArrays.CategoricalVector)
+function promotetoallowmissing(obj::CategoricalVector)
 	T = eltype(obj)
 	if isa(T, Union)
 		T = T.b
 	end
-	return CategoricalArrays.CategoricalVector{Union{Missings.Missing,T}}(obj)
+	return CategoricalVector{Union{Missing,T}}(obj)
 end
-function promotetoallowmissing!(obj::DataFrames.AbstractDataFrame)
-	for col ∈ DataFrames.eachcol(obj)
+function promotetoallowmissing!(obj::AbstractDataFrame)
+	for col ∈ eachcol(obj)
 		obj[col[1]] = promotetoallowmissing(col[2])
 	end
-	DataFrames.categorical!(obj, find(col -> col <: AbstractString, getfield.(eltype.(obj.columns), :b)))
+	categorical!(obj, find(col -> col <: AbstractString, getfield.(eltype.(obj.columns), :b)))
 	return
 end
 
 ## Drop support for missing data
 dropsupportformissing(obj::AbstractVector) = obj
 dropsupportformissing(obj::AbstractVector{T}) where T <: Union = Vector{eltype(obj).b}(obj)
-function dropsupportformissing(obj::CategoricalArrays.AbstractCategoricalVector)
+function dropsupportformissing(obj::AbstractCategoricalVector)
 	T = eltype(obj)
 	if isa(T, Union)
 		T = T.b
 	end
-	return CategoricalArrays.CategoricalVector{T}(obj)
+	return CategoricalVector{T}(obj)
 end
-function dropsupportformissing!(obj::DataFrames.AbstractDataFrame)
-	for col ∈ DataFrames.eachcol(obj)
+function dropsupportformissing!(obj::AbstractDataFrame)
+	for col ∈ eachcol(obj)
 		obj[col[1]] = dropsupportformissing(col[2])
 	end
-	DataFrames.categorical!(obj, find(col -> col <: AbstractString, (eltype.(obj.columns))))
+	categorical!(obj, find(col -> col <: AbstractString, (eltype.(obj.columns))))
 	return
 end
 
@@ -138,8 +138,8 @@ end
 ## Make groups
 makegroups(obj::AbstractVector) =
 	find.(map(val -> obj .== val, unique(obj)))
-makegroups(obj::DataFrames.AbstractDataFrame) = makegroups.(obj.columns)
-function makegroups(formula::StatsModels.Formula, data::DataFrames.AbstractDataFrame)
+makegroups(obj::AbstractDataFrame) = makegroups.(obj.columns)
+function makegroups(formula::Formula, data::AbstractDataFrame)
     formula = StatsModels.Terms(formula.absorb).eterms[2:end]
     if isempty(formula)
         output = Vector{Vector{Vector{Int64}}}()

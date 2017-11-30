@@ -2,12 +2,8 @@ __precompile__(true)
 
 module EconUtils
 
-import Missings
-import CategoricalArrays
-import DataFrames
-import StatsBase
-import StatsModels
-
+using Missings, CategoricalArrays, DataFrames, StatsModels
+using StatsBase: coefnames, indexmap
 include.((
 	"utils.jl",
 	"firstdifference.jl",

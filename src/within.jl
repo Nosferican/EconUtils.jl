@@ -1,6 +1,6 @@
 
 """
-	fixedeffects(obj::DataFrames.AbstractDataFrame)
+	fixedeffects(obj::AbstractDataFrame)
 
 	This functions takes a dataframe with the fixed effects and returns a list
 	of dimensions with a list of fixed effects (observation identifiers). It
@@ -8,7 +8,7 @@
 	vector. After dropping the singletons from the model matrix, one can use
 	pass the fixedeffects to the within transformation.
 """
-function fixedeffects(obj::DataFrames.AbstractDataFrame)
+function fixedeffects(obj::AbstractDataFrame)
 	groups = makegroups(obj)
 	(m, singletons) = dropsingletons!(groups)
 	remapper = makeremapper(m, singletons)

@@ -10,15 +10,15 @@
 	observation is not valid. The first observation for the temporal ID is kept
 	as the original value.
 """
-function firstdifference(obj::DataFrames.AbstractDataFrame,
+function firstdifference(obj::AbstractDataFrame,
 						 PID::Symbol,
 						 TID::Symbol)
-	varlist = DataFrames.names(obj)
+	varlist = names(obj)
 	obj = copy(obj)
 	promotetoallowmissing!(obj)
 	sort!(obj, cols = [PID, TID])
-	DataFrames.categorical!(obj)
-	Step = DataFrames.by(obj, PID) do subdf
+	categorical!(obj)
+	Step = by(obj, PID) do subdf
         frequency(subdf[TID])
     end
 	Step = filter(elem -> elem ≥ zero(typeof(elem)), Step[:x1])
@@ -26,19 +26,19 @@ function firstdifference(obj::DataFrames.AbstractDataFrame,
 	Step = minimum(Step)
 	Gaps = gaps(obj, Step, PID = PID, TID = TID)
 	Gaps = Gaps[:Valid]
-	categorical = setdiff(DataFrames.names(obj)[broadcast(<:,
+	categorical = setdiff(names(obj)[broadcast(<:,
 						typeof.(obj.columns),
-						CategoricalArrays.AbstractCategoricalVector)],
+						AbstractCategoricalVector)],
 						[PID, TID])
 	todiff = obj[:, union([PID],
-					setdiff(DataFrames.names(obj), union([TID], categorical)))]
-	todiff = DataFrames.by(todiff, PID) do subdf
+					setdiff(names(obj), union([TID], categorical)))]
+	todiff = by(todiff, PID) do subdf
 		if size(subdf, 1) == 1
 			output = subdf[:,2:end]
 		else
 			output = subdf[:,2:end]
-			for (name, col) ∈ DataFrames.eachcol(output)
-				output[:,name] = vcat(Missings.missing, diff(col))
+			for (name, col) ∈ eachcol(output)
+				output[:,name] = vcat(missing, diff(col))
 			end
 		end
 		return output
