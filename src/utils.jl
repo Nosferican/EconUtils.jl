@@ -136,15 +136,18 @@ function linearindependent(obj::AbstractMatrix{T}) where T <: Real
 end
 
 ## Make groups
-makegroups(obj::AbstractVector) =
-	find.(map(val -> obj .== val, unique(obj)))
-makegroups(obj::AbstractDataFrame) = makegroups.(obj.columns)
-function makegroups(formula::Formula, data::AbstractDataFrame)
-    formula = StatsModels.Terms(formula.absorb).eterms[2:end]
-    if isempty(formula)
-        output = Vector{Vector{Vector{Int64}}}()
-    else
-        output = makegroups(data[formula])
+groups(formula::Formula, data::AbstractDataFrame) =
+       groups.(interact.(StatsModels.Terms(formula).terms, data))
+groups(obj::AbstractVector) = map(val -> find(equalto(val), obj), unique(obj))
+interact(ex::Expr, data::AbstractDataFrame) = interact(getindex.(data, ex.args[2:end]))
+interact(name::Symbol, data::AbstractDataFrame) = getindex(data, name)
+function interact(obj::AbstractVector{T}) where T <: AbstractCategoricalVector
+    n = length(obj[1])
+    obj = groups.(obj)
+    mapper = Dict{Any,Int64}()
+    output = Vector{Int64}(n)
+    for idx ∈ eachindex(output)
+        output[idx] = get!(mapper, map(each -> findfirst(idx .∈ each), obj), length(mapper))
     end
     return output
 end

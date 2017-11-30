@@ -46,7 +46,13 @@ function modelframe(formula::EconFormula,
 		z = zeros(length(y),0)
 		Z = zeros(length(y),0)
 	end
-	D = Vector{Vector{Vector{Int64}}}()
-	G = Vector{Vector{Vector{Int64}}}()
+	D = groups(formula.absorb, data)
+	G = groups(formula.clusters, data)
+	if empty(D)
+		D = Vector{Vector{Vector{Int64}}}()
+	end
+	if empty(G)
+		G = Vector{Vector{Vector{Int64}}}()
+	end
 	return df, varlist, assign, y, X, z, Z, D, G
 end

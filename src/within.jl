@@ -9,11 +9,11 @@
 	pass the fixedeffects to the within transformation.
 """
 function fixedeffects(obj::AbstractDataFrame)
-	groups = makegroups(obj)
-	(m, singletons) = dropsingletons!(groups)
+	Groups = groups(obj)
+	(m, singletons) = dropsingletons!(Groups)
 	remapper = makeremapper(m, singletons)
-	remapping!(groups, remapper)
-	output = groups, singletons
+	remapping!(Groups, remapper)
+	output = Groups, singletons
 	return output
 end
 
@@ -23,17 +23,17 @@ end
 	This function performs the within transformation given a model matrix and
 	fixed effects using the method of alternating projections.
 """
-function within(obj::AbstractMatrix, groups::Vector{Vector{Vector{Int64}}})
-	output = mapslices(col -> within(col, groups), obj, 1)
+function within(obj::AbstractMatrix, D::Vector{Vector{Vector{Int64}}})
+	output = mapslices(col -> within(col, D), obj, 1)
 	return output
 end
-function within(obj::AbstractVector, groups::Vector{Vector{Vector{Int64}}})
+function within(obj::AbstractVector, D::Vector{Vector{Vector{Int64}}})
 	μ = mean(obj)
 	current = copy(obj)
 	output = copy(obj)
 	er = Inf
 	while er > 1e-8
-		for dimension ∈ groups
+		for dimension ∈ D
 			current = copy(output)
 			for group ∈ dimension
 				output[group] .-= mean(current[group])
