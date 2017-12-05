@@ -64,10 +64,10 @@ function formulaparser(formula::Formula)
 		Cluster = cluster.(formula.args)
 		Representation.rhs.args =
 			Representation.rhs.args[(EndoInst .== nothing) .&
-			(Absorb .== nothing)]
+			(Absorb .== nothing) .& (Cluster .== nothing)]
 		Representation = string(Representation)
 		formula.args = formula.args[(EndoInst .== nothing) .&
-			(Absorb .== nothing) .& (EndoInst .== nothing)]
+			(Absorb .== nothing) .& (EndoInst .== nothing) .& (Cluster .== nothing)]
 		if (formula.args[1] == :(+)) & (length(formula.args) == 2)
 			Exogenous = Formula(response, formula.args[2])
 		else

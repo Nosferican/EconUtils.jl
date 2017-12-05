@@ -3,7 +3,7 @@ __precompile__(true)
 module EconUtils
 
 using Missings, CategoricalArrays, DataFrames, StatsModels
-using StatsBase: coefnames, indexmap
+using StatsBase: coefnames, model_response, indexmap
 include.((
 	"utils.jl",
 	"firstdifference.jl",
