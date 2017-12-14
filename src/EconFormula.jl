@@ -47,13 +47,13 @@ function cluster(obj::Expr)
 	end
 end
 function formulaparser(formula::Formula)
-	formula = copy(formula)
-	Representation = copy(formula)
+	formula = deepcopy(formula)
+	Representation = deepcopy(formula)
 	response = formula.lhs
 	formula = formula.rhs
 	if isa(formula, Symbol)
-		Representation = string(formula)
-		Exogenous = Formula(response, exogenous)
+		Representation = string(Representation)
+		Exogenous = Formula(response, formula)
 		Endogenous = Formula(response, 0)
 		Instruments = Formula(response, 0)
 		Absorb = Formula(response, 0)

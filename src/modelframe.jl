@@ -1,6 +1,7 @@
 
 """
-	modelframe(formula::EconFormula, data::AbstractDataFrame)
+	modelframe(formula::EconFormula, data::AbstractDataFrame;
+		contrasts::Dict = Dict())
 
 	This formula is akin to ModelFrame for Formula, but rather than being a
 	struct it returns
