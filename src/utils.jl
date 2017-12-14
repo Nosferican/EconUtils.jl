@@ -80,28 +80,6 @@ function frequency(obj::AbstractVector{T}) where T <: Dates.Date
     end
     return Dates.Period(first(output.periods))
 end
-## Makes all columns compatible with missing data
-function promotetoallowmissing(obj::AbstractVector)
-	TypeOf = eltype(obj)
-	if isa(TypeOf, Union)
-		TypeOf = TypeOf.b
-	end
-	return Vector{Union{Missing,TypeOf}}(obj)
-end
-function promotetoallowmissing(obj::CategoricalVector)
-	T = eltype(obj)
-	if isa(T, Union)
-		T = T.b
-	end
-	return CategoricalVector{Union{Missing,T}}(obj)
-end
-function promotetoallowmissing!(obj::AbstractDataFrame)
-	for col ∈ eachcol(obj)
-		obj[col[1]] = promotetoallowmissing(col[2])
-	end
-	categorical!(obj, find(col -> col <: AbstractString, getfield.(eltype.(obj.columns), :b)))
-	return
-end
 
 ## Drop support for missing data
 dropsupportformissing(obj::AbstractVector) = obj

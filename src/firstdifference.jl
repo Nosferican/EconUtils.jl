@@ -15,7 +15,7 @@ function firstdifference(obj::AbstractDataFrame,
 						 TID::Symbol)
 	varlist = names(obj)
 	obj = copy(obj)
-	promotetoallowmissing!(obj)
+	allowmissing!(obj)
 	sort!(obj, cols = [PID, TID])
 	categorical!(obj)
 	Step = by(obj, PID) do subdf
