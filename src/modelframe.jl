@@ -16,7 +16,8 @@
 """
 function modelframe(formula::EconFormula,
 	data::AbstractDataFrame;
-	contrasts::Dict = Dict())
+	contrasts::Dict = Dict(),
+	θ::Vector{T} = Vector{Real}()) where T <: Real
 	response = formula.exogenous.lhs
 	exogenous = StatsModels.Terms(formula.exogenous)
 	endogenous = StatsModels.Terms(formula.endogenous)
@@ -51,6 +52,14 @@ function modelframe(formula::EconFormula,
 	G = groups(formula.clusters, data)
 	if isempty(D)
 		D = Vector{Vector{Vector{Int64}}}()
+	elseif !isempty(θ)
+		@assert length(D) == 1 "Partial demeaning is implemented for only one dimension."
+		@assert length(θ) == length(D[1]) "θ must be empty or same length as D[1]."
+		X = partialwithin(X, D, θ)
+		if size(z, 2) > 0
+			z = partialwithin(z, D, θ)
+			Z = partialwithin(Z, D, θ)
+		end
 	else
 		(m, singletons) = dropsingletons!(D)
 		remapper = makeremapper(m, singletons)
