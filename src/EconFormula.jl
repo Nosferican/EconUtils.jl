@@ -65,6 +65,9 @@ function formulaparser(formula::Formula)
 		Representation.rhs.args =
 			Representation.rhs.args[(EndoInst .== nothing) .&
 			(Absorb .== nothing) .& (Cluster .== nothing)]
+		if length(Representation.rhs.args) == 2
+			setfield!(Representation, :rhs, Representation.rhs.args[2])
+		end
 		Representation = string(Representation)
 		formula.args = formula.args[(EndoInst .== nothing) .&
 			(Absorb .== nothing) .& (EndoInst .== nothing) .& (Cluster .== nothing)]
