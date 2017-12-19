@@ -1,6 +1,7 @@
 __precompile__(true)
 
 module EconUtils
+using Compat
 
 using Missings, CategoricalArrays, DataFrames, StatsBase, StatsModels
 

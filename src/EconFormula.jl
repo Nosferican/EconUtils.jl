@@ -16,7 +16,7 @@
 		absorb::Formula
 		clusters::Formula
 """
-struct EconFormula
+mutable struct EconFormula
 	representation::String
 	exogenous::Formula
 	endogenous::Formula

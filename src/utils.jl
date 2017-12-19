@@ -101,7 +101,7 @@ end
 
 ## Linear Independent
 function linearindependent(obj::AbstractMatrix{T}) where T <: Real
-    cf = cholfact!(Hermitian(obj.'obj), Val(true), tol = -one(eltype(obj)))
+    cf = cholfact!(Symmetric(obj.'obj, :U), Val{true}, tol = -one(eltype(obj)))
     r = cf.rank
     p = size(obj, 2)
     if r < p

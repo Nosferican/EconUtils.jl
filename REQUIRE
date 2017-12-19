@@ -4,3 +4,4 @@ CategoricalArrays
 StatsBase
 DataFrames
 StatsModels
+Compat

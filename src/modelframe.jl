@@ -49,16 +49,17 @@ function modelframe(formula::EconFormula,
 		Z = zeros(length(y),0)
 	end
 	D = groups(formula.absorb, data)
-	G = groups(formula.clusters, data)
+	R = groups(formula.clusters, data)
 	if isempty(D)
 		D = Vector{Vector{Vector{Int64}}}()
 	elseif !isempty(θ)
 		@assert length(D) == 1 "Partial demeaning is implemented for only one dimension."
 		@assert length(θ) == length(D[1]) "θ must be empty or same length as D[1]."
-		X = partialwithin(X, D, θ)
+		y = partialwithin(y, D[1], θ)
+		X = partialwithin(X, D[1], θ)
 		if size(z, 2) > 0
-			z = partialwithin(z, D, θ)
-			Z = partialwithin(Z, D, θ)
+			z = partialwithin(z, D[1], θ)
+			Z = partialwithin(Z, D[1], θ)
 		end
 	else
 		(m, singletons) = dropsingletons!(D)
@@ -72,8 +73,8 @@ function modelframe(formula::EconFormula,
 			Z = within(Z[validobs,:], D)
 		end
 	end
-	if isempty(G)
-		G = Vector{Vector{Vector{Int64}}}()
+	if isempty(R)
+		R = Vector{Vector{Vector{Int64}}}()
 	end
-	return df, varlist, assign, y, X, z, Z, D, G
+	return df, varlist, assign, y, X, z, Z, D, R
 end
